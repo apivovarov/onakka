@@ -1,7 +1,12 @@
 package org.x4444.onakka
 
 import akka.actor.{ActorSystem, Props}
-import org.x4444.onakka.MyActor._
+import akka.pattern.ask
+import akka.util.Timeout
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 /**
   * MySystem
@@ -10,12 +15,13 @@ object MySystem {
 
   def main(args: Array[String]): Unit = {
     val system = ActorSystem("mySystem")
-    val myActor = system.actorOf(Props[MyActor], "myactor")
+    val dispActor = system.actorOf(Props[DispActor], "dispactor")
 
-    myActor ! "test"
+    implicit val timeout = Timeout(5 seconds)
+    val f1 = dispActor ? "test" // enabled by the “ask” import
+    val r1 = Await.result(f1, timeout.duration).asInstanceOf[(String, String, String)]
+    println(r1)
 
-    myActor ! Msg2("m2")
-
-    myActor ! Msg3("kill system")
+    dispActor ! "kill"
   }
 }
